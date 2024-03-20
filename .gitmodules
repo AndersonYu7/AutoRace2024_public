@@ -1,0 +1,6 @@
+[submodule "DynamixelSDK"]
+	path = DynamixelSDK
+	url = https://github.com/AndersonYu7/DynamixelSDK.git
+[submodule "ubuntu_docker"]
+	path = ubuntu_docker
+	url = https://github.com/AndersonYu7/ubuntu_docker.git
