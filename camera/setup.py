@@ -21,6 +21,7 @@ setup(
     entry_points={
         'console_scripts': [
             'camera = camera.camera:main',
+            'H65_camera = camera.H65_camera:main',
         ],
     },
 )
