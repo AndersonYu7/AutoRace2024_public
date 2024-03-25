@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+## 新增循單線 可以左右轉
+
 import rclpy
 from rclpy.node import Node
 import numpy as np
@@ -63,12 +65,13 @@ class detect(Node):
 
         self.lane_fit_bef = np.array([0, 0, 0])  # Initialize lane_fit_bef attribute        
         self.lane_toggle = True   
-
-        # self.declare_parameter('meow', True)   
-        # self.meow = int(self.get_parameter('meow').value)
+        self.go_yellow_line = False
+        self.go_white_line = False
 
         ##sub
         self.subscription = self.create_subscription(Image, 'rgb', self.image_callback, 10)
+        self.subscription_left = self.create_subscription(Bool, 'go_yellow_line', self.left_callback, 10)
+        self.subscription_right = self.create_subscription(Bool, 'go_white_line', self.right_callback, 10)
 
         self.publisher_lane = self.create_publisher(
             Image,
@@ -121,6 +124,12 @@ class detect(Node):
             self.subscription_reliability_yellow_line = self.create_subscription(Float64, 'reliability_yellow_line_topic', self.reliability_yellow_line_callback, 10)
 
         self.cv_bridge = CvBridge()
+    
+    def left_callback(self, msg):
+        self.go_yellow_line = msg.data
+    
+    def right_callback(self, msg):
+        self.go_white_line = msg.data
 
     def top_x_callback(self, msg):
         self.top_x = int(msg.data)
@@ -188,10 +197,10 @@ class detect(Node):
         ## ===================
         
         # 高斯濾波
-        cv_image_original = cv2.GaussianBlur(cv_image_original, (5, 5), 0)
+        # cv_image_original = cv2.GaussianBlur(cv_image_original, (5, 5), 0)
 
         # 使用雙邊滤波
-        # cv_image_original = cv2.bilateralFilter(cv_image_original, d=9, sigmaColor=75, sigmaSpace=75)
+        cv_image_original = cv2.bilateralFilter(cv_image_original, d=9, sigmaColor=75, sigmaSpace=75)
 
         top_width = self.top_x
         top_height = self.top_y
@@ -240,6 +249,9 @@ class detect(Node):
         white_fraction, cv_white_lane = self.maskWhiteLane(cv_lane)
         yellow_fraction, cv_yellow_lane = self.maskYellowLane(cv_lane)
 
+        rclpy.logging.get_logger('detect_node').info("white_fraction : %d" % white_fraction)
+        rclpy.logging.get_logger('detect_node').info("yellow_fraction : %d" % yellow_fraction)
+
         if self.calibration_mode == False:
             #擬合車道線
             try:
@@ -276,7 +288,12 @@ class detect(Node):
             if self.mov_avg_right.shape[0] > 1000:
                 self.mov_avg_right = self.mov_avg_right[0:MOV_AVG_LENGTH]
 
-            self.make_lane(cv_lane, white_fraction, yellow_fraction)
+            if self.go_yellow_line:
+                self.make_yellow_lane(cv_lane, yellow_fraction)
+            elif self.go_white_line:
+                self.make_white_lane(cv_lane, white_fraction)
+            else:
+                self.make_dul_lane(cv_lane, white_fraction, yellow_fraction)
 
     def draw_lines(self, image, lines, color, thickness):
         image_with_lines = np.copy(image)
@@ -302,7 +319,7 @@ class detect(Node):
         cv2.bitwise_and(image, image, mask = mask)
 
         fraction_num = np.count_nonzero(mask)
-        if fraction_num > 30000:
+        if fraction_num > 15000: #30000
             if self.lightness_white_l < 250:
                 self.lightness_white_l += 5
         elif fraction_num < 5000:
@@ -354,7 +371,7 @@ class detect(Node):
         cv2.bitwise_and(image, image, mask = mask)
 
         fraction_num = np.count_nonzero(mask)
-        if fraction_num > 30000:
+        if fraction_num > 15000: #30000
             if self.lightness_yellow_l < 250:
                 self.lightness_yellow_l += 5
         elif fraction_num < 5000:
@@ -488,7 +505,7 @@ class detect(Node):
 
         return lane_fitx, lane_fit
 
-    def make_lane(self, cv_image, white_fraction, yellow_fraction):
+    def make_dul_lane(self, cv_image, white_fraction, yellow_fraction):
         rclpy.logging.get_logger('detect_node').info("line")
         # Create an image to draw the lines on
         warp_zero = np.zeros((cv_image.shape[0], cv_image.shape[1], 1), dtype=np.uint8)
@@ -501,18 +518,18 @@ class detect(Node):
         print(cv_image.shape)
         print('============')
 
-        if yellow_fraction > 3000:
+        if yellow_fraction > 4000: #3000
             pts_left = np.array([np.flipud(np.transpose(np.vstack([self.left_fitx, ploty])))])
             cv2.polylines(color_warp_lines, np.int_([pts_left]), isClosed=False, color=(0, 0, 255), thickness=25)
 
-        if white_fraction > 3000:
+        if white_fraction > 4000: #3000
             pts_right = np.array([np.transpose(np.vstack([self.right_fitx, ploty]))])
             cv2.polylines(color_warp_lines, np.int_([pts_right]), isClosed=False, color=(255, 255, 0), thickness=25)
         
         self.is_center_x_exist = True
 
         if self.reliability_white_line > 50 and self.reliability_yellow_line > 50:   
-            if white_fraction > 3000 and yellow_fraction > 3000:
+            if white_fraction > 4000 and yellow_fraction > 4000: #3000
                 print('hi')
                 centerx = np.mean([self.left_fitx, self.right_fitx], axis=0)
                 pts = np.hstack((pts_left, pts_right))
@@ -523,30 +540,30 @@ class detect(Node):
                 # Draw the lane onto the warped blank image
                 cv2.fillPoly(color_warp, np.int_([pts]), (0, 255, 0))
 
-            if white_fraction > 3000 and yellow_fraction <= 3000:
+            if white_fraction > 4000 and yellow_fraction <= 4000: #3000
                 print('hi2')
-                centerx = np.subtract(self.right_fitx, 320)
+                centerx = np.subtract(self.right_fitx, 250) #320
                 pts_center = np.array([np.transpose(np.vstack([centerx, ploty]))])
 
                 cv2.polylines(color_warp_lines, np.int_([pts_center]), isClosed=False, color=(0, 255, 255), thickness=12)
 
-            if white_fraction <= 3000 and yellow_fraction > 3000:
+            if white_fraction <= 4000 and yellow_fraction > 4000: #3000
                 print('hi3')
-                centerx = np.add(self.left_fitx, 320)
+                centerx = np.add(self.left_fitx, 250) #320
                 pts_center = np.array([np.transpose(np.vstack([centerx, ploty]))])
 
                 cv2.polylines(color_warp_lines, np.int_([pts_center]), isClosed=False, color=(0, 255, 255), thickness=12)
 
         elif self.reliability_white_line <= 50 and self.reliability_yellow_line > 50:
             print('hi4')
-            centerx = np.add(self.left_fitx, 320)
+            centerx = np.add(self.left_fitx, 250) #320
             pts_center = np.array([np.transpose(np.vstack([centerx, ploty]))])
 
             cv2.polylines(color_warp_lines, np.int_([pts_center]), isClosed=False, color=(0, 255, 255), thickness=12)
 
         elif self.reliability_white_line > 50 and self.reliability_yellow_line <= 50:
             print('hi5')
-            centerx = np.subtract(self.right_fitx, 320)
+            centerx = np.subtract(self.right_fitx, 250) #320
             pts_center = np.array([np.transpose(np.vstack([centerx, ploty]))])
 
             cv2.polylines(color_warp_lines, np.int_([pts_center]), isClosed=False, color=(0, 255, 255), thickness=12)
@@ -571,6 +588,98 @@ class detect(Node):
 
         self.publisher_lane.publish(self.cv_bridge.cv2_to_imgmsg(final, encoding='bgr8'))
         
+    def make_yellow_lane(self, cv_image, yellow_fraction):
+        rclpy.logging.get_logger('detect_node').info("line")
+        # Create an image to draw the lines on
+        warp_zero = np.zeros((cv_image.shape[0], cv_image.shape[1], 1), dtype=np.uint8)
+        # print(cv_image.shape[0], cv_image.shape[1])
+
+        color_warp = np.dstack((warp_zero, warp_zero, warp_zero))
+        color_warp_lines = np.dstack((warp_zero, warp_zero, warp_zero))
+
+        ploty = np.linspace(0, cv_image.shape[0] - 1, cv_image.shape[0])
+        print(cv_image.shape)
+        print('============')
+
+        if yellow_fraction > 4000: #3000
+            pts_left = np.array([np.flipud(np.transpose(np.vstack([self.left_fitx, ploty])))])
+            cv2.polylines(color_warp_lines, np.int_([pts_left]), isClosed=False, color=(0, 0, 255), thickness=25)
+
+        
+        self.is_center_x_exist = True
+
+        if self.reliability_yellow_line > 50:
+            print('hi4')
+            centerx = np.add(self.left_fitx, 250) #320
+            pts_center = np.array([np.transpose(np.vstack([centerx, ploty]))])
+
+            cv2.polylines(color_warp_lines, np.int_([pts_center]), isClosed=False, color=(0, 255, 255), thickness=12)
+
+        else:
+            print('hi6')
+            self.is_center_x_exist = False
+            # TODO: stop
+            pass
+
+        # Combine the result with the original image
+        final = cv2.addWeighted(cv_image, 1, color_warp, 0.2, 0)
+        final = cv2.addWeighted(final, 1, color_warp_lines, 1, 0)
+
+        if self.is_center_x_exist == True:
+        # publishes lane center
+            msg_desired_center = Float64()
+            msg_desired_center.data = centerx.item(350)
+            if self.lane_toggle == True:
+                self.publisher_control_lane.publish(msg_desired_center)
+            # rospy.loginfo(msg_desired_center)
+
+        self.publisher_lane.publish(self.cv_bridge.cv2_to_imgmsg(final, encoding='bgr8'))
+
+    def make_white_lane(self, cv_image, white_fraction):
+        rclpy.logging.get_logger('detect_node').info("line")
+        # Create an image to draw the lines on
+        warp_zero = np.zeros((cv_image.shape[0], cv_image.shape[1], 1), dtype=np.uint8)
+        # print(cv_image.shape[0], cv_image.shape[1])
+
+        color_warp = np.dstack((warp_zero, warp_zero, warp_zero))
+        color_warp_lines = np.dstack((warp_zero, warp_zero, warp_zero))
+
+        ploty = np.linspace(0, cv_image.shape[0] - 1, cv_image.shape[0])
+        print(cv_image.shape)
+        print('============')
+
+        if white_fraction > 4000: #3000
+            pts_right = np.array([np.transpose(np.vstack([self.right_fitx, ploty]))])
+            cv2.polylines(color_warp_lines, np.int_([pts_right]), isClosed=False, color=(255, 255, 0), thickness=25)
+        
+        self.is_center_x_exist = True
+
+        if self.reliability_white_line > 50:
+            print('hi5')
+            centerx = np.subtract(self.right_fitx, 250) #320
+            pts_center = np.array([np.transpose(np.vstack([centerx, ploty]))])
+
+            cv2.polylines(color_warp_lines, np.int_([pts_center]), isClosed=False, color=(0, 255, 255), thickness=12)
+
+        else:
+            print('hi6')
+            self.is_center_x_exist = False
+            # TODO: stop
+            pass
+
+        # Combine the result with the original image
+        final = cv2.addWeighted(cv_image, 1, color_warp, 0.2, 0)
+        final = cv2.addWeighted(final, 1, color_warp_lines, 1, 0)
+
+        if self.is_center_x_exist == True:
+        # publishes lane center
+            msg_desired_center = Float64()
+            msg_desired_center.data = centerx.item(350)
+            if self.lane_toggle == True:
+                self.publisher_control_lane.publish(msg_desired_center)
+            # rospy.loginfo(msg_desired_center)
+
+        self.publisher_lane.publish(self.cv_bridge.cv2_to_imgmsg(final, encoding='bgr8'))
 
 def main(args=None):
     rclpy.init(args=args)
