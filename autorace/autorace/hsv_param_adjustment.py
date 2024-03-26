@@ -4,7 +4,8 @@ from rclpy.node import Node
 from rclpy.parameter import Parameter
 from rclpy.qos import QoSProfile
 from std_msgs.msg import Float64
-from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QSlider, QLabel, QWidget, QPushButton, QMessageBox
+from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QSlider, QLabel, QWidget, QPushButton, QMessageBox, QFileDialog
+
 import yaml
 
 class ParameterAdjuster(Node):
@@ -78,10 +79,6 @@ class ParameterAdjuster(Node):
             yaml.dump({node_name: parameters}, yaml_file)
         self.get_logger().info('Parameters saved to parameters.yaml')
 
-
-
-
-
 class SliderWindow(QMainWindow):
     def __init__(self, adjuster_node):
         super().__init__()
@@ -97,7 +94,7 @@ class SliderWindow(QMainWindow):
 
         self.slider_top_x = QSlider()
         self.slider_top_x.setMinimum(0)
-        self.slider_top_x.setMaximum(1280)
+        self.slider_top_x.setMaximum(640)
         self.slider_top_x.setValue(640)
         self.slider_top_x.setOrientation(1)  # Vertical orientation
 
@@ -105,7 +102,7 @@ class SliderWindow(QMainWindow):
 
         self.slider_top_y = QSlider()
         self.slider_top_y.setMinimum(0)
-        self.slider_top_y.setMaximum(720)
+        self.slider_top_y.setMaximum(480)
         self.slider_top_y.setValue(0)
         self.slider_top_y.setOrientation(1)  # Vertical orientation
 
@@ -113,7 +110,7 @@ class SliderWindow(QMainWindow):
 
         self.slider_bottom_x = QSlider()
         self.slider_bottom_x.setMinimum(0)
-        self.slider_bottom_x.setMaximum(1280)
+        self.slider_bottom_x.setMaximum(640)
         self.slider_bottom_x.setValue(640)
         self.slider_bottom_x.setOrientation(1)  # Vertical orientation
 
@@ -121,7 +118,7 @@ class SliderWindow(QMainWindow):
 
         self.slider_bottom_y = QSlider()
         self.slider_bottom_y.setMinimum(0)
-        self.slider_bottom_y.setMaximum(720)
+        self.slider_bottom_y.setMaximum(480)
         self.slider_bottom_y.setValue(360)
         self.slider_bottom_y.setOrientation(1)  # Vertical orientation
 
@@ -241,6 +238,12 @@ class SliderWindow(QMainWindow):
         self.label_reliability_yellow_line = QLabel('reliability_yellow_line Value: 100')
 
         self.save_button = QPushButton('Save Parameters')
+
+        #===================
+        self.open_file_button = QPushButton('Open File')
+        self.layout.addWidget(self.open_file_button)
+        self.open_file_button.clicked.connect(self.open_file_dialog)
+        #===================
 
         self.layout.addWidget(self.label_top_x)
         self.layout.addWidget(self.slider_top_x)
@@ -395,6 +398,61 @@ class SliderWindow(QMainWindow):
     def save_button_clicked(self):
         self.adjuster_node.save_parameters_to_yaml()
         QMessageBox.information(self, 'Saved', 'Parameters saved to parameters.yaml')
+
+    def open_file_dialog(self):
+        options = QFileDialog.Options()
+        file_name, _ = QFileDialog.getOpenFileName(self, "Open File", "", "YAML Files (*.yaml);;All Files (*)", options=options)
+        if file_name:
+            self.load_parameters_from_yaml(file_name)
+
+    def load_parameters_from_yaml(self, file_name):
+        with open(file_name, 'r') as yaml_file:
+            yaml_data = yaml.load(yaml_file, Loader=yaml.FullLoader)
+            if yaml_data and '/detect_node' in yaml_data and 'ros__parameters' in yaml_data['/detect_node']:
+                parameters = yaml_data['/detect_node']['ros__parameters']
+                self.update_gui_with_parameters(parameters)
+            else:
+                QMessageBox.warning(self, 'Error', 'Invalid YAML file format')
+
+    def update_gui_with_parameters(self, parameters):
+        self.slider_top_x.setValue(int(parameters.get('top_x', 640)))
+        self.slider_top_y.setValue(int(parameters.get('top_y', 0)))
+        self.slider_bottom_x.setValue(int(parameters.get('bottom_x', 640)))
+        self.slider_bottom_y.setValue(int(parameters.get('bottom_y', 360)))
+        self.slider_hue_white_l.setValue(int(parameters.get('hue_white_l', 0)))
+        self.slider_hue_white_h.setValue(int(parameters.get('hue_white_h', 0)))
+        self.slider_saturation_white_l.setValue(int(parameters.get('saturation_white_l', 0)))
+        self.slider_saturation_white_h.setValue(int(parameters.get('saturation_white_h', 50)))
+        self.slider_lightness_white_l.setValue(int(parameters.get('lightness_white_l', 230)))
+        self.slider_lightness_white_h.setValue(int(parameters.get('lightness_white_h', 255)))
+        self.slider_reliability_white_line.setValue(int(parameters.get('reliability_white_line', 100)))
+        self.slider_hue_yellow_l.setValue(int(parameters.get('hue_yellow_l', 8)))
+        self.slider_hue_yellow_h.setValue(int(parameters.get('hue_yellow_h', 36)))
+        self.slider_saturation_yellow_l.setValue(int(parameters.get('saturation_yellow_l', 8)))
+        self.slider_saturation_yellow_h.setValue(int(parameters.get('saturation_yellow_h', 80)))
+        self.slider_lightness_yellow_l.setValue(int(parameters.get('lightness_yellow_l', 240)))
+        self.slider_lightness_yellow_h.setValue(int(parameters.get('lightness_yellow_h', 255)))
+        self.slider_reliability_yellow_line.setValue(int(parameters.get('reliability_yellow_line', 100)))
+
+        # Update labels
+        self.label_top_x.setText(f'Top X Value: {parameters.get("top_x", 640)}')
+        self.label_top_y.setText(f'Top Y Value: {parameters.get("top_y", 0)}')
+        self.label_bottom_x.setText(f'Bottom X Value: {parameters.get("bottom_x", 640)}')
+        self.label_bottom_y.setText(f'Bottom Y Value: {parameters.get("bottom_y", 360)}')
+        self.label_hue_white_l.setText(f'hue_white_l Value: {parameters.get("hue_white_l", 0)}')
+        self.label_hue_white_h.setText(f'hue_white_h Value: {parameters.get("hue_white_h", 0)}')
+        self.label_saturation_white_l.setText(f'saturation_white_l Value: {parameters.get("saturation_white_l", 0)}')
+        self.label_saturation_white_h.setText(f'saturation_white_h Value: {parameters.get("saturation_white_h", 50)}')
+        self.label_lightness_white_l.setText(f'lightness_white_l Value: {parameters.get("lightness_white_l", 230)}')
+        self.label_lightness_white_h.setText(f'lightness_white_h Value: {parameters.get("lightness_white_h", 255)}')
+        self.label_reliability_white_line.setText(f'reliability_white_line Value: {parameters.get("reliability_white_line", 100)}')
+        self.label_hue_yellow_l.setText(f'hue_yellow_l Value: {parameters.get("hue_yellow_l", 8)}')
+        self.label_hue_yellow_h.setText(f'hue_yellow_h Value: {parameters.get("hue_yellow_h", 36)}')
+        self.label_saturation_yellow_l.setText(f'saturation_yellow_l Value: {parameters.get("saturation_yellow_l", 8)}')
+        self.label_saturation_yellow_h.setText(f'saturation_yellow_h Value: {parameters.get("saturation_yellow_h", 80)}')
+        self.label_lightness_yellow_l.setText(f'lightness_yellow_l Value: {parameters.get("lightness_yellow_l", 240)}')
+        self.label_lightness_yellow_h.setText(f'lightness_yellow_h Value: {parameters.get("lightness_yellow_h", 255)}')
+        self.label_reliability_yellow_line.setText(f'reliability_yellow_line Value: {parameters.get("reliability_yellow_line", 100)}')
 
 def main():
     rclpy.init()

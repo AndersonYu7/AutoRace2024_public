@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-## 新增循單線 可以左右轉
+## 新增循單線 可以左右轉 調整數值
 
 import rclpy
 from rclpy.node import Node
@@ -556,14 +556,14 @@ class detect(Node):
 
         elif self.reliability_white_line <= 50 and self.reliability_yellow_line > 50:
             print('hi4')
-            centerx = np.add(self.left_fitx, 250) #320
+            centerx = np.add(self.left_fitx, 230) #320
             pts_center = np.array([np.transpose(np.vstack([centerx, ploty]))])
 
             cv2.polylines(color_warp_lines, np.int_([pts_center]), isClosed=False, color=(0, 255, 255), thickness=12)
 
         elif self.reliability_white_line > 50 and self.reliability_yellow_line <= 50:
             print('hi5')
-            centerx = np.subtract(self.right_fitx, 250) #320
+            centerx = np.subtract(self.right_fitx, 230) #320
             pts_center = np.array([np.transpose(np.vstack([centerx, ploty]))])
 
             cv2.polylines(color_warp_lines, np.int_([pts_center]), isClosed=False, color=(0, 255, 255), thickness=12)
@@ -581,7 +581,7 @@ class detect(Node):
         if self.is_center_x_exist == True:
         # publishes lane center
             msg_desired_center = Float64()
-            msg_desired_center.data = centerx.item(350)
+            msg_desired_center.data = centerx.item(300)
             if self.lane_toggle == True:
                 self.publisher_control_lane.publish(msg_desired_center)
             # rospy.loginfo(msg_desired_center)
@@ -610,7 +610,7 @@ class detect(Node):
 
         if self.reliability_yellow_line > 50:
             print('hi4')
-            centerx = np.add(self.left_fitx, 250) #320
+            centerx = np.add(self.left_fitx, 230) #320
             pts_center = np.array([np.transpose(np.vstack([centerx, ploty]))])
 
             cv2.polylines(color_warp_lines, np.int_([pts_center]), isClosed=False, color=(0, 255, 255), thickness=12)
@@ -628,7 +628,7 @@ class detect(Node):
         if self.is_center_x_exist == True:
         # publishes lane center
             msg_desired_center = Float64()
-            msg_desired_center.data = centerx.item(350)
+            msg_desired_center.data = centerx.item(300)
             if self.lane_toggle == True:
                 self.publisher_control_lane.publish(msg_desired_center)
             # rospy.loginfo(msg_desired_center)
@@ -656,7 +656,7 @@ class detect(Node):
 
         if self.reliability_white_line > 50:
             print('hi5')
-            centerx = np.subtract(self.right_fitx, 250) #320
+            centerx = np.subtract(self.right_fitx, 230) #320
             pts_center = np.array([np.transpose(np.vstack([centerx, ploty]))])
 
             cv2.polylines(color_warp_lines, np.int_([pts_center]), isClosed=False, color=(0, 255, 255), thickness=12)
@@ -674,7 +674,7 @@ class detect(Node):
         if self.is_center_x_exist == True:
         # publishes lane center
             msg_desired_center = Float64()
-            msg_desired_center.data = centerx.item(350)
+            msg_desired_center.data = centerx.item(300)
             if self.lane_toggle == True:
                 self.publisher_control_lane.publish(msg_desired_center)
             # rospy.loginfo(msg_desired_center)
