@@ -10,9 +10,11 @@
 
 import rclpy
 import cv2
+import time
 from rclpy.node import Node
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
+
 
 class CameraPublisher(Node):
     def __init__(self):
@@ -20,27 +22,25 @@ class CameraPublisher(Node):
         self.publisher_ = self.create_publisher(Image, 'rgb', 10)
         self.timer = self.create_timer(0.001, self.publish_image)
         self.cap = cv2.VideoCapture()
-        self.cap.open(2, apiPreference=cv2.CAP_V4L2)#設定相機為V4L2 for linux to setup 
+        self.cap.open(2, apiPreference=cv2.CAP_V4L2)  # Set camera to V4L2 for Linux
 
-        # 設定解析度為960x720
+        # Set resolution to 960x720
         self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 960)
         self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
 
-        # self.cap.set(cv2.CAP_PROP_AUTO_EXPOSURE,3) #自動曝光
-        self.cap.set(cv2.CAP_PROP_AUTO_EXPOSURE,1) #手動曝光
-        self.cap.set(cv2.CAP_PROP_EXPOSURE,45)   #設定曝光度
+        self.cap.set(cv2.CAP_PROP_AUTO_EXPOSURE, 3)  # Automatic exposure
 
-        self.cap.set(cv2.CAP_PROP_CONTRAST, 50)  #設定對比度
-        
-        #=======畫面處理=========
-        # 裁切區域的長度與寬度
+        self.auto_exposure_timeout = 3  # Timeout in seconds for switching to manual exposure
+        self.start_time = time.time()  # Record start time for timeout      
+
+        # Image processing parameters
+        # Define crop area dimensions
         self.y = 450
         self.x = 600
         or_h = self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
         or_w = self.cap.get(cv2.CAP_PROP_FRAME_WIDTH)
-        self.image_h = int((or_h-self.y)/2)
-        self.image_w = int((or_w-self.x)/2)
-        #=======================
+        self.image_h = int((or_h - self.y) / 2)
+        self.image_w = int((or_w - self.x) / 2)
 
         self.bridge = CvBridge()
 
@@ -49,10 +49,22 @@ class CameraPublisher(Node):
             raise RuntimeError('Unable to open the camera.')
 
     def publish_image(self):
+        current_time = time.time()
+        elapsed_time = current_time - self.start_time
+
+        if elapsed_time >= self.auto_exposure_timeout:
+            # Switch to manual exposure mode
+            self.cap.set(cv2.CAP_PROP_AUTO_EXPOSURE, 1)
+            # Set exposure and contrast values
+            self.cap.set(cv2.CAP_PROP_EXPOSURE, 45)
+            self.cap.set(cv2.CAP_PROP_CONTRAST, 50)
+            
+            self.get_logger().info('Switched to manual exposure after timeout.')
+
         ret, frame = self.cap.read()
-        # frame_flipped = cv2.flip(frame, 1)
-        frame = frame[self.image_h:self.image_h+self.y, self.image_w:self.image_w+self.x]
-        frame = cv2.resize(frame,(640, 480))
+        # Crop the frame
+        frame = frame[self.image_h:self.image_h + self.y, self.image_w:self.image_w + self.x]
+        frame = cv2.resize(frame, (640, 480))
 
         if ret:
             try:
@@ -77,3 +89,4 @@ def main(args=None):
 
 if __name__ == '__main__':
     main()
+
