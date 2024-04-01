@@ -8,8 +8,9 @@ $ mkdir [OWN_WORKSPACE]_ws && cd [OWN_WORKSPACE]_ws
 $ git clone --recursive https://github.com/AndersonYu7/AutoRace2024_public src
 ```
 ## Build and Run Docker
+* device -> pc/jetson
 ```
-$ cd src/ubuntu_docker/ub22_ros2_cuda11.8_custom_cudnn
+$ cd src/autorace_docker/autorace_docker_{device}
 $ ./build.sh
 $ ./run.sh
 ```
