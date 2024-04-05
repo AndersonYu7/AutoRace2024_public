@@ -19,7 +19,11 @@ from cv_bridge import CvBridge
 class CameraPublisher(Node):
     def __init__(self):
         super().__init__('H65_camera_publisher')
-        self.publisher_ = self.create_publisher(Image, 'rgb', 10)
+
+        self.declare_parameter('calibration', False)
+        self.calibration_mode = int(self.get_parameter('calibration').value)
+
+        self.publisher_ = self.create_publisher(Image, '/image/image_raw', 10)
         self.timer = self.create_timer(0.001, self.publish_image)
         self.cap = cv2.VideoCapture()
         self.cap.open(2, apiPreference=cv2.CAP_V4L2)  # Set camera to V4L2 for Linux
@@ -28,7 +32,8 @@ class CameraPublisher(Node):
         self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 960)
         self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
 
-        self.cap.set(cv2.CAP_PROP_AUTO_EXPOSURE, 3)  # Automatic exposure
+        if self.calibration_mode == True:
+            self.cap.set(cv2.CAP_PROP_AUTO_EXPOSURE, 3)  # Automatic exposure
 
         self.auto_exposure_timeout = 3  # Timeout in seconds for switching to manual exposure
         self.start_time = time.time()  # Record start time for timeout      
@@ -89,4 +94,3 @@ def main(args=None):
 
 if __name__ == '__main__':
     main()
-
