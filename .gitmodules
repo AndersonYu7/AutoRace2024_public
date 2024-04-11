@@ -6,6 +6,3 @@
 	path = autorace_docker
 	url = https://github.com/AndersonYu7/autorace_docker.git
 	branch = main
-[submodule "rplidar_ros"]
-	path = rplidar_ros
-	url = https://github.com/Slamtec/rplidar_ros.git
