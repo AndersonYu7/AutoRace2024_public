@@ -130,6 +130,7 @@ class node(Node):
             pass
 
         elif self.mode.value == Mode.PARKING.value:
+            self.get_logger().info('Mode: PARKING')
             pass
 
 def main(args=None):

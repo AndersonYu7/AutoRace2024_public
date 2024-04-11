@@ -16,8 +16,13 @@ def generate_launch_description():
         executable='H65_camera',
         parameters=[{'calibration': LaunchConfiguration('calibration')}]
     )
+
+    # camera_node = Node(
+    #     package='camera',
+    #     executable='camera',
+    # )
     
-    config=os.path.join(get_package_share_directory('detect'), 'config', 'hsv_parameters_default.yaml')
+    config=os.path.join(get_package_share_directory('detect_lane'), 'config', 'hsv_parameters_default.yaml')
     # config=os.path.join(get_package_share_directory('detect_lane'), 'config', 'hsv_parameters_own.yaml')
 
     detect_node = Node(

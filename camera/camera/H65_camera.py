@@ -63,8 +63,6 @@ class CameraPublisher(Node):
             # Set exposure and contrast values
             self.cap.set(cv2.CAP_PROP_EXPOSURE, 45)
             self.cap.set(cv2.CAP_PROP_CONTRAST, 50)
-            
-            self.get_logger().info('Switched to manual exposure after timeout.')
 
         ret, frame = self.cap.read()
         # Crop the frame
@@ -75,6 +73,7 @@ class CameraPublisher(Node):
             try:
                 ros_image_msg = self.bridge.cv2_to_imgmsg(frame, encoding='bgr8')
                 self.publisher_.publish(ros_image_msg)
+                
                 self.get_logger().info('Image published to camera_image topic')
             except Exception as e:
                 self.get_logger().error(f'Error converting and publishing image: {str(e)}')

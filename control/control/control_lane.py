@@ -22,7 +22,6 @@ class ControlLane(Node):
             self.Stop_fun()
 
     def cbFollowLane(self, desired_center):
-        print(self.stop)
         if self.stop == False:
             center = desired_center.data
 
