@@ -14,7 +14,11 @@ Make sure you have Docker installed on your system. If not, follow the Docker in
 * calibration:
   - True: Enable calibration mode to adjust HSV and image parameters for optimal lane detection performance.
   - False: Enable line following mode, which outputs the middle line for navigation.
- 
+
+### Step 2: Open Motor Drive
+
+* [Control_Motor](README.md#Trun-on-control-motor)
+
 ### Step 2: Run Control Lane program 
 `$ ros2 run control control_lane`
 
