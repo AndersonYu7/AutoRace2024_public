@@ -27,7 +27,7 @@ $ source install/setup.bash
 `$ ls /dev/video*`
 
 * Determine if your interface is /dev/video2
-* If not change H65_camera.py to your interface
+  - If not change H65_camera.py to your interface
 
 ### Open Camera
 `$ ros2 run camara H65_camera`
@@ -43,7 +43,7 @@ add topic: /image/image_raw image
 `$ ls /dev/ttyUSB*`
 
 * Determine if your interface is /dev/ttyUSB0
-* If not change control_dual_{model}.py.py to your interface
+  - If not change control_dual_{model}.py.py to your interface
 * model -> xl/xm
 
 ### Trun on control motor
