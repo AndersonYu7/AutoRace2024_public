@@ -57,5 +57,5 @@ $ ros2 launch control_motor control_dual_{model}_launch.py
 `$ ros2 run teleop_twist_keyboard teleop_twist_keyboard`
 
 ## Module
-* [Detect Lane]()
-* [Object Detct]()
+* [Detect Lane](/detect/detect_lane/README.md)
+* [Object Detct](/detect/object_detection/README.md)
