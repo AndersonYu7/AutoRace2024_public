@@ -5,3 +5,4 @@
 [submodule "autorace_docker"]
 	path = autorace_docker
 	url = https://github.com/AndersonYu7/autorace_docker.git
+	branch = main
