@@ -75,7 +75,7 @@ class ParameterAdjuster(Node):
         for param_name in parameter_names:
             param_value = self.get_parameter(param_name)
             parameters['ros__parameters'][param_name] = param_value.value
-        with open('/' + path + '/src/autorace/config/' + 'hsv_parameters_own.yaml', 'w') as yaml_file:
+        with open('/' + path + '/src/detect/detect_lane/config/' + 'hsv_parameters_own.yaml', 'w') as yaml_file:
             yaml.dump({node_name: parameters}, yaml_file)
         self.get_logger().info('Parameters saved to parameters.yaml')
 
@@ -419,19 +419,19 @@ class SliderWindow(QMainWindow):
         self.slider_top_y.setValue(int(parameters.get('top_y', 0)))
         self.slider_bottom_x.setValue(int(parameters.get('bottom_x', 640)))
         self.slider_bottom_y.setValue(int(parameters.get('bottom_y', 360)))
-        self.slider_hue_white_l.setValue(int(parameters.get('hue_white_l', 0)))
-        self.slider_hue_white_h.setValue(int(parameters.get('hue_white_h', 0)))
-        self.slider_saturation_white_l.setValue(int(parameters.get('saturation_white_l', 0)))
-        self.slider_saturation_white_h.setValue(int(parameters.get('saturation_white_h', 50)))
+        self.slider_hue_white_l.setValue(int(parameters.get('hue_white_l', 19)))
+        self.slider_hue_white_h.setValue(int(parameters.get('hue_white_h', 182)))
+        self.slider_saturation_white_l.setValue(int(parameters.get('saturation_white_l', 21)))
+        self.slider_saturation_white_h.setValue(int(parameters.get('saturation_white_h', 97)))
         self.slider_lightness_white_l.setValue(int(parameters.get('lightness_white_l', 230)))
         self.slider_lightness_white_h.setValue(int(parameters.get('lightness_white_h', 255)))
         self.slider_reliability_white_line.setValue(int(parameters.get('reliability_white_line', 100)))
-        self.slider_hue_yellow_l.setValue(int(parameters.get('hue_yellow_l', 8)))
-        self.slider_hue_yellow_h.setValue(int(parameters.get('hue_yellow_h', 36)))
+        self.slider_hue_yellow_l.setValue(int(parameters.get('hue_yellow_l', 0)))
+        self.slider_hue_yellow_h.setValue(int(parameters.get('hue_yellow_h', 83)))
         self.slider_saturation_yellow_l.setValue(int(parameters.get('saturation_yellow_l', 8)))
         self.slider_saturation_yellow_h.setValue(int(parameters.get('saturation_yellow_h', 80)))
-        self.slider_lightness_yellow_l.setValue(int(parameters.get('lightness_yellow_l', 240)))
-        self.slider_lightness_yellow_h.setValue(int(parameters.get('lightness_yellow_h', 255)))
+        self.slider_lightness_yellow_l.setValue(int(parameters.get('lightness_yellow_l', 3)))
+        self.slider_lightness_yellow_h.setValue(int(parameters.get('lightness_yellow_h', 171)))
         self.slider_reliability_yellow_line.setValue(int(parameters.get('reliability_yellow_line', 100)))
 
         # Update labels
