@@ -19,7 +19,7 @@ Make sure you have Docker installed on your system. If not, follow the Docker in
 
 * [Control_Motor](README.md#Trun-on-control-motor)
 
-### Step 2: Run Control Lane program 
+### Step 3: Run Control Lane program 
 `$ ros2 run control control_lane`
 
 ## Challenge
