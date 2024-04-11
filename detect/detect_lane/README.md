@@ -11,7 +11,7 @@ Make sure you have Docker installed on your system. If not, follow the Docker in
 `$ ros2 launch detect_lane detect_lane_launch.py calibration:=False`
 
 #### Parameter Description
-* calibration:
+* **calibration**:
   - True: Enable calibration mode to adjust HSV and image parameters for optimal lane detection performance.
   - False: Enable line following mode, which outputs the middle line for navigation.
 
