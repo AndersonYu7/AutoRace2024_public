@@ -80,35 +80,35 @@ class node(Node):
         self.traffic_light = msg.data
 
     def signs_callback(self, msg):
-        if msg.data == 'Intersection_sign':
+        if msg.data == 'Ts':
             self.get_logger().info('Received: Intersection sign')
             pass
 
-        elif msg.data == 'Left_sign':
+        elif msg.data == 'lift':
             self.get_logger().info('Received: LEFT sign')
             pass
 
-        elif msg.data == 'Right_sign':
+        elif msg.data == 'right':
             self.get_logger().info('Received: RIGHT sign')
             pass
 
-        elif msg.data == 'Stop_sign':
+        elif msg.data == 'error':
             self.get_logger().info('Received: STOP sign')
             pass
 
-        elif msg.data == 'Obstacle_sign':
+        elif msg.data == 'dig':
             self.get_logger().info('Received: OBSTACLE sign')
             pass
 
-        elif msg.data == 'Park_sign':
+        elif msg.data == 'park':
             self.get_logger().info('Received: PARKING sign')
             pass
 
-        elif msg.data == 'Stop_Bar_sign':
+        elif msg.data == 'row':
             self.get_logger().info('Received: STOPBAR sign')
             pass
 
-        elif msg.data == 'Tunnel_sign':
+        elif msg.data == 'cave':
             self.get_logger().info('Received: TUNNEL sign')
             pass
         else:
