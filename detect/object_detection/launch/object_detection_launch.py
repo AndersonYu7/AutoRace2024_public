@@ -9,7 +9,7 @@ from ament_index_python.packages import get_package_share_directory
 
 def generate_launch_description():
     # Declare launch arguments
-    weights_arg = DeclareLaunchArgument('weights', default_value='best.pt')
+    weights_arg = DeclareLaunchArgument('weights', default_value='sign.pt')
     conf_thres_arg = DeclareLaunchArgument('conf_thres', default_value='0.25')
     iou_thres_arg = DeclareLaunchArgument('iou_thres', default_value='0.45')
     device_arg = DeclareLaunchArgument('device', default_value='')
