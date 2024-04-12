@@ -117,6 +117,7 @@ class ObjectDetection(Node):
         t3 = time_synchronized()
 
         # Process detections   
+        detect = False
         for i, det in enumerate(pred):  # detections per image
             gn = torch.tensor(im0.shape)[[1, 0, 1, 0]]  # normalization gain whwh
             if len(det):
@@ -139,6 +140,11 @@ class ObjectDetection(Node):
 
                         self.signs.data = self.names[int(cls)]
                         self.publisher.publish(self.signs)
+                        detect = True
+
+            if detect == False:
+                self.signs.data = ""
+                self.publisher.publish(self.signs)
 
             cv2.imshow("YOLOv7 Object detection result RGB", cv2.resize(im0, None, fx=1.5, fy=1.5))
             if cv2.waitKey(1) & 0xFF == ord('q'):
@@ -154,3 +160,4 @@ def main(args=None):
 
 if __name__ == '__main__':
     main()
+
